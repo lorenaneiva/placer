@@ -1,0 +1,3 @@
+@extends('layouts.app')
+@section('title','Criar conta')
+@section('content')<section class="card max-w-lg mx-auto"><p class="eyebrow">SEU ESPAÇO ESTÁ AQUI</p><h1>Crie sua conta</h1><form method="POST" action="{{ route('register') }}" class="space-y-5 mt-6">@csrf<x-field name="name" label="Nome completo" autocomplete="name"/><x-field name="email" label="E-mail" type="email" autocomplete="email"/><x-field name="phone" label="Telefone" type="tel" autocomplete="tel"/><x-field name="password" label="Senha (mínimo 8 caracteres)" type="password" autocomplete="new-password" minlength="8"/><x-field name="password_confirmation" label="Confirme sua senha" type="password" autocomplete="new-password"/><button class="btn w-full">Criar conta</button></form></section>@endsection

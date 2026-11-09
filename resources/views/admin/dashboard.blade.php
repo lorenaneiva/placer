@@ -1,0 +1,3 @@
+@extends('layouts.app')
+@section('title','Administração')
+@section('content')@include('admin.nav')<h1>Painel de administração</h1><p class="text-slate-500 mb-7">Organize os espaços e acompanhe a agenda.</p><div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">@foreach(['categories'=>['Categorias',$categories],'spaces'=>['Espaços',$spaces],'reservations'=>['Reservas futuras',$reservations],'blocks'=>['Bloqueios ativos / futuros',$blocks]] as $key=>$item)<a class="card" href="{{ route('admin.'.$key) }}"><p class="text-slate-500">{{ $item[0] }}</p><p class="text-4xl font-bold text-teal-800 mt-4">{{ $item[1] }}</p></a>@endforeach</div>@endsection

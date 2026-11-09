@@ -1,58 +1,76 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PLACER
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Agendamento de espaços com Laravel 13, Blade, Tailwind CSS 4 e PostgreSQL. A especificação do MVP está em [AI/PLACE_especificacao_unificada_para_IA.md](AI/PLACE_especificacao_unificada_para_IA.md).
 
-## About Laravel
+## Ambiente existente
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Preserve o `.env`, os containers e os volumes já utilizados. O projeto inclui Laravel Sail com PHP 8.5 e PostgreSQL 18; o Composer exige PHP 8.3 ou superior. Não é necessário recriar o projeto ou reinstalar dependências já presentes.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Em uma instalação nova, instale as dependências com `composer install` e `npm ci`, copie `.env.example` para `.env`, preencha as credenciais do PostgreSQL e gere a chave com `php artisan key:generate --no-interaction`. Não gere outra chave em instalações existentes.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Dentro do Sail, use `DB_HOST=pgsql`; executando PHP diretamente na máquina, use o endereço e a porta publicados pelo PostgreSQL. O `.env.example` contém valores de exemplo, que não substituem as credenciais do banco existente. O Sail atende na porta `APP_PORT` (80 por padrão); ajuste `APP_URL` conforme a URL utilizada.
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Com os serviços existentes em execução, aplique somente migrações pendentes e compile a interface:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+./vendor/bin/sail artisan migrate --no-interaction
+npm run build
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Para desenvolvimento da interface, `npm run dev`. Para consultar migrações sem alterá-las, `./vendor/bin/sail artisan migrate:status --no-interaction`.
 
-## Contributing
+## Primeiro administrador
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Execute o comando interativo no terminal:
 
-## Code of Conduct
+```bash
+./vendor/bin/sail artisan placer:admin
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Informe nome, e-mail único, telefone e senha de pelo menos 12 caracteres. A senha é solicitada de forma oculta e armazenada como hash. O cadastro público sempre cria clientes. Não há conta administrativa ou senha padrão.
 
-## Security Vulnerabilities
+## Catálogo de demonstração (opcional)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+./vendor/bin/sail artisan db:seed --class=CatalogSeeder --no-interaction
+```
 
-## License
+Adiciona cinco categorias e espaços fictícios, sem criar usuários ou reservas. Pode ser repetido: registros existentes não são sobrescritos, preços e descrições editados são preservados, categorias inativas são ignoradas. O `DatabaseSeeder` também chama esse catálogo; os dados são incluídos somente ao executar um seeder explicitamente.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Uso
+
+- `/`: catálogo público e filtro de categoria.
+- `/espacos/{space}`: disponibilidade por data; visitantes podem entrar ou criar conta para reservar.
+- `/minhas-reservas`: reservas do cliente, confirmação e cancelamento.
+- `/admin`: painel administrativo.
+- `/admin/categorias` e `/admin/espacos`: cadastro, edição e ativação/desativação.
+- `/admin/reservas`: filtros por data, espaço e situação; detalhes, cancelamento e reagendamento com consulta de horários livres.
+- `/admin/bloqueios`: criação e remoção de indisponibilidades com confirmação.
+
+Todas as ações administrativas exigem autenticação e perfil de administrador no servidor. As rotas completas podem ser consultadas com `php artisan route:list --except-vendor`.
+
+## Regras do MVP
+
+Reservas de 60 minutos, em hora cheia, entre 08h e 22h, diariamente. O fuso de entrada e apresentação é `America/Belem`; os instantes são convertidos para UTC antes da persistência. A configuração está em `config/placer.php`.
+
+A antecedência é definida por categoria: N dias a partir do momento atual; zero permite somente horários futuros de hoje. Espaços ou categorias inativos impedem novas reservas, preservando histórico e reservas confirmadas.
+
+O preço é calculado no servidor e congelado na reserva. Reagendar para outro espaço ou horário aplica o preço atual; salvar o mesmo espaço e horário mantém o valor original. Clientes cancelam apenas reservas próprias futuras; administradores podem cancelar reservas confirmadas passadas. Cancelar preserva o registro e libera o horário.
+
+Reservas, reagendamentos e bloqueios usam transações e locks na linha do espaço, com revalidação dos conflitos. Intervalos adjacentes são permitidos. Bloqueios podem abranger horas consecutivas no mesmo dia e não podem sobrepor reservas confirmadas ou outros bloqueios.
+
+Pagamentos, notificações, recorrência e relatórios avançados estão fora do MVP.
+
+## Verificação essencial
+
+Os testes usam exclusivamente o banco PostgreSQL `testing`, configurado em `phpunit.xml`. Confirme sua existência e as credenciais antes de executar. Nunca substitua esse nome pelo banco de desenvolvimento ou produção. Prepare apenas migrações pendentes no banco de teste, definindo o banco explicitamente (o Artisan não carrega as variáveis do `phpunit.xml`):
+
+```bash
+docker compose exec -e DB_DATABASE=testing laravel.test php artisan migrate --no-interaction
+./vendor/bin/sail artisan test --compact tests/Feature/PlacerTest.php
+./vendor/bin/sail artisan test --compact tests/Feature/ConcurrencyTest.php
+```
+
+O teste de concorrência requer PostgreSQL e a extensão `pcntl`, e usa dois processos reais. Não substitua por SQLite para afirmar proteção contra concorrência. Os testes funcionais existentes cobrem autenticação, permissões, preços, conflitos, cancelamentos, bloqueios e reagendamento. Para formatação PHP, `vendor/bin/pint --dirty --format agent`.
+
+Nesta sessão, a conexão local com `pgsql` não pôde ser resolvida e o acesso ao socket Docker foi negado. A validação funcional e de concorrência no PostgreSQL permanece pendente até execução no ambiente Sail acessível. Isso não foi contornado recriando banco, containers ou volumes.

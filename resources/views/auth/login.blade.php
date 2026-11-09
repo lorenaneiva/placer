@@ -1,0 +1,3 @@
+@extends('layouts.app')
+@section('title','Entrar')
+@section('content')<section class="card max-w-md mx-auto"><p class="eyebrow">BEM-VINDO DE VOLTA</p><h1>Entre na sua conta</h1><p class="text-slate-500 mb-6">Encontre seu espaço e reserve seu horário.</p><form method="POST" action="{{ route('login') }}" class="space-y-5">@csrf<x-field name="email" label="E-mail" type="email" autocomplete="email"/><x-field name="password" label="Senha" type="password" autocomplete="current-password"/><button class="btn w-full">Entrar</button></form><p class="mt-5 text-sm">Ainda não tem conta? <a class="link" href="{{ route('register') }}">Cadastre-se</a></p></section>@endsection

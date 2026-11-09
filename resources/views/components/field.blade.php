@@ -1,0 +1,2 @@
+@props(['name','label','type'=>'text','value'=>'','required'=>true])
+<div><label for="{{ $name }}" class="block text-sm font-semibold mb-2">{{ $label }}</label><input id="{{ $name }}" name="{{ $name }}" type="{{ $type }}" value="{{ $type === 'password' ? '' : old($name,$value) }}" @required($required) {{ $attributes->class(['field']) }} @if($errors->has($name)) aria-invalid="true" aria-describedby="{{ $name }}-error" @endif>@error($name)<p id="{{ $name }}-error" class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror</div>
